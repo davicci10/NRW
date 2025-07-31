@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NRW Countdown</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Lexend Deca', Arial, sans-serif;
+      background: url('https://images.pexels.com/photos/33239696/pexels-photo-33239696.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .outer-border {
+      padding: 6px;
+      border-radius: 30px;
+      background: linear-gradient(45deg, #5865F2, #FEE75C, #57BEF2, #57F287, #ED4245, #EB459E, #9C58F2, #5865F2);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.75);
+      border-radius: 24px;
+      padding: 30px 25px;
+      backdrop-filter: blur(6px);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2em;
+      font-weight: 900;
+      margin-bottom: 20px;
+    }
+
+    .countdown {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      flex-wrap: wrap;
+    }
+
+    .time-block {
+      min-width: 70px;
+      padding: 10px;
+    }
+
+    .time-block span {
+      display: block;
+      font-size: 2em;
+      font-weight: 700;
+    }
+
+    .time-block p {
+      margin: 5px 0 0;
+      font-size: 0.9em;
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+
+    /* Popup Styling */
+    .popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10001;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .popup.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .popup .outer-border {
+      max-width: 800px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      transform: scale(0.8);
+      transition: transform 0.4s ease;
+    }
+
+    .popup.show .outer-border {
+      transform: scale(1);
+    }
+
+    .popup .container {
+      text-align: left;
+    }
+
+    .popup h2 {
+      font-size: 1.5em;
+      font-weight: 700;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    .popup p, .popup a, .popup ul {
+      font-size: 1em;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+
+    .popup ul {
+      padding-left: 20px;
+    }
+
+    .popup a {
+      color: #6E75E8;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .popup a:hover {
+      color: #ffffff;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: white;
+      transition: color 0.3s ease;
+    }
+
+    .close-btn:hover {
+      color: #ED4245;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.4em;
+      }
+      .time-block span {
+        font-size: 1.5em;
+      }
+      .time-block {
+        min-width: 60px;
+        padding: 8px;
+      }
+      .popup h2 {
+        font-size: 1.2em;
+      }
+      .popup p, .popup a, .popup ul {
+        font-size: 0.9em;
+      }
+      .popup .outer-border {
+        width: 95%;
+      }
+    }
+
+    #error-msg {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(237, 66, 69, 0.9);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-family: 'Lexend Deca', Arial, sans-serif;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      z-index: 9999;
+      user-select: none;
+      max-width: 300px;
+    }
+
+    #error-msg.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    #info-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: rgba(88, 101, 242, 0.9);
+      color: white;
+      padding: 12px 30px;
+      font-weight: 700;
+      font-family: 'Lexend Deca', Arial, sans-serif;
+      border-bottom-right-radius: 25px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.3);
+      transform: translateX(-100%);
+      transition: transform 0.7s ease;
+      z-index: 10000;
+      user-select: none;
+      cursor: default;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #info-bar.show {
+      transform: translateX(0);
+    }
+
+    /* Footer */
+    footer#footer-links {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 0.9em;
+      font-family: 'Lexend Deca', Arial, sans-serif;
+      z-index: 9998;
+      color: white;
+      backdrop-filter: blur(4px);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    footer#footer-links a {
+      color: rgba(110, 117, 232, 0.66);
+      text-decoration: none;
+      font-weight: 700;
+      transition: color 0.3s ease;
+      cursor: pointer;
+    }
+
+    footer#footer-links a:hover {
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="outer-border">
+  <div class="container">
+    <h1>New game update</h1>
+    <div class="countdown">
+      <div class="time-block">
+        <span id="days">00</span>
+        <p>Days</p>
+      </div>
+      <div class="time-block">
+        <span id="hours">00</span>
+        <p>Hours</p>
+      </div>
+      <div class="time-block">
+        <span id="minutes">00</span>
+        <p>Minutes</p>
+      </div>
+      <div class="time-block">
+        <span id="seconds">00</span>
+        <p>Seconds</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fehler-Meldung -->
+<div id="error-msg" title="Klicken zum Schließen">
+  <i class="fas fa-exclamation-triangle"></i> Fehler: Entwicklertools sind deaktiviert.
+</div>
+
+<!-- Info-Leiste -->
+<div id="info-bar">
+  <i class="fas fa-lightbulb"></i> There is a new game update to nrw netzwerk
+</div>
+
+<!-- Impressum Popup -->
+<div id="impressum-popup" class="popup">
+  <div class="outer-border">
+    <div class="container">
+      <i class="fas fa-times close-btn" onclick="closePopup('impressum-popup')"></i>
+      <h1>Imprint</h1>
+      <h2>Information according to § 5 TMG:</h2>
+      <p>
+        Finn Conradt<br>
+        Jenaer Str. 20<br>
+        34246<br>
+        Germany
+      </p>
+      <h2>Contact:</h2>
+      <p>
+        Email: <a href="mailto:nrwnetzwerk.sup@gmail.com">nrwnetzwerk.sup@gmail.com</a>
+      </p>
+      <h2>Responsible for content according to § 55 Abs. 2 RStV:</h2>
+      <p>Finn Conradt</p>
+      <h2>Disclaimer:</h2>
+      <p>
+        Despite careful content control, we assume no liability for the content of external links. The operators of the linked pages are solely responsible for their content.
+      </p>
+      <h2>Online dispute resolution according to Art. 14 Para. 1 ODR Regulation:</h2>
+      <p>
+        The European Commission provides a platform for online dispute resolution (ODR): <a href="https://ec.europa.eu/consumers/odr/" target="_blank">https://ec.europa.eu/consumers/odr/</a><br>
+        Our email address can be found above in the imprint.
+      </p>
+      <h2>Note on consumer dispute resolution according to § 36 VSBG:</h2>
+      <p>
+        We are not willing or obliged to participate in dispute resolution proceedings before a consumer arbitration board.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Datenschutz Popup -->
+<div id="datenschutz-popup" class="popup">
+  <div class="outer-border">
+    <div class="container">
+      <i class="fas fa-times close-btn" onclick="closePopup('datenschutz-popup')"></i>
+      <h1>Privacy Policy</h1>
+      <h2>1. General Information</h2>
+      <p>
+        The protection of your personal data is very important to us. We process your data exclusively on the basis of legal provisions (GDPR, TMG).
+      </p>
+      <p>
+        Below we inform you about the most important aspects of data processing within the framework of our website.
+      </p>
+      <h2>2. Access Data / Server Log Files</h2>
+      <p>
+        Our website is delivered via the service Cloudflare (Cloudflare Inc., 101 Townsend St., San Francisco, CA 94107, USA). Cloudflare provides security and performance services that help protect our website from attacks and optimize loading times.
+      </p>
+      <p>
+        As part of its services, Cloudflare may collect certain technical information about access to the website, e.g.:
+      </p>
+      <ul>
+        <li>IP address</li>
+        <li>Requested web page</li>
+        <li>Browser type and version</li>
+        <li>Operating system</li>
+        <li>Referrer URL</li>
+        <li>Time of access</li>
+      </ul>
+      <p>
+        Cloudflare acts here as a data processor within the meaning of the GDPR. There is a data processing agreement in accordance with Art. 28 GDPR. Further information on data processing by Cloudflare can be found at: <a href="https://www.cloudflare.com/de-de/privacypolicy/" target="_blank">https://www.cloudflare.com/de-de/privacypolicy/</a>
+      </p>
+      <h2>3. Google Fonts</h2>
+      <p>
+        On our website, we use external fonts from Google Fonts. Google Fonts is a service of Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland.
+      </p>
+      <p>
+        The embedding is done remotely via Google servers. When you call up a page, your browser loads the required web fonts into its cache to display texts correctly. Your IP address is transmitted to Google in the process.
+      </p>
+      <p>
+        The legal basis for the use is our legitimate interest in a uniform and appealing presentation of our website in accordance with Art. 6 Para. 1 lit. f GDPR.
+      </p>
+      <p>
+        More information about Google Fonts can be found at: <a href="https://developers.google.com/fonts/faq" target="_blank">https://developers.google.com/fonts/faq</a><br>
+        as well as in Google's privacy policy: <a href="https://policies.google.com/privacy" target="_blank">https://policies.google.com/privacy</a>
+      </p>
+      <h2>4. Your Rights</h2>
+      <p>
+        You basically have the following rights:
+      </p>
+      <ul>
+        <li>Right to information (Art. 15 GDPR)</li>
+        <li>Right to correction (Art. 16 GDPR)</li>
+        <li>Right to deletion (Art. 17 GDPR)</li>
+        <li>Right to restriction of processing (Art. 18 GDPR)</li>
+        <li>Right to data portability (Art. 20 GDPR)</li>
+        <li>Right to object to processing (Art. 21 GDPR)</li>
+      </ul>
+      <p>
+        If you believe that the processing of your data violates data protection law or that your data protection rights have been violated, you can complain to the competent supervisory authority.
+      </p>
+      <h2>5. Contact</h2>
+      <p>
+        For questions about data protection, please contact:<br>
+        Finn Conradt<br>
+        Jenaer Str. 20<br>
+        34246<br>
+        Germany<br>
+        <a href="mailto:nrwnetzwerk.sup@gmail.com">nrwnetzwerk.sup@gmail.com</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Footer mit Links -->
+<footer id="footer-links">
+  <a onclick="openPopup('datenschutz-popup')">Privacy Policy</a>
+  <span>|</span>
+  <a onclick="openPopup('impressum-popup')">Imprint</a>
+</footer>
+
+<!-- Countdown Script -->
+<script>
+  const targetDate = new Date('2025-08-01T13:00:00+02:00').getTime();
+
+  function updateCountdown() {
+    const now = new Date().getTime();
+    const timeLeft = targetDate - now;
+
+    if (timeLeft <= 0) {
+      clearInterval(countdownInterval);
+      document.querySelector('.countdown').innerHTML = '<h2>Countdown abgelaufen!</h2>';
+      return;
+    }
+
+    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+    document.getElementById('days').textContent = String(days).padStart(2, '0');
+    document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+    document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+    document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+  }
+
+  updateCountdown();
+  const countdownInterval = setInterval(updateCountdown, 1000);
+</script>
+
+<!-- Schutz-Skript und Popup-Steuerung -->
+<script>
+  const errorMsg = document.getElementById('error-msg');
+  let hideTimeout = null;
+
+  function showError() {
+    if (hideTimeout) clearTimeout(hideTimeout);
+    errorMsg.classList.add('show');
+    hideTimeout = setTimeout(() => {
+      errorMsg.classList.remove('show');
+    }, 5000);
+  }
+
+  errorMsg.addEventListener('click', () => {
+    if (hideTimeout) clearTimeout(hideTimeout);
+    errorMsg.classList.remove('show');
+  });
+
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  document.addEventListener('keydown', e => {
+    if (
+            e.key === 'F12' ||
+            (e.ctrlKey && e.shiftKey && ['I', 'J'].includes(e.key.toUpperCase())) ||
+            (e.ctrlKey && ['U', 'S', 'C'].includes(e.key.toUpperCase()))
+    ) {
+      e.preventDefault();
+      showError();
+      return false;
+    }
+  });
+
+  window.addEventListener('load', () => {
+    const infoBar = document.getElementById('info-bar');
+    setTimeout(() => {
+      infoBar.classList.add('show');
+      setTimeout(() => {
+        infoBar.classList.remove('show');
+      }, 30000);
+    }, 3000);
+  });
+
+  function openPopup(popupId) {
+    document.getElementById(popupId).classList.add('show');
+  }
+
+  function closePopup(popupId) {
+    document.getElementById(popupId).classList.remove('show');
+  }
+</script>
+
+</body>
+</html>
